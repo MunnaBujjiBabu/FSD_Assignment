@@ -1,0 +1,24 @@
+{
+  "name": "elibrary-backend",
+  "version": "1.0.0",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "dev": "concurrently \"nodemon auth-service/server.js\" \"nodemon catalog-service/server.js\" \"nodemon reservation-service/server.js\" \"nodemon api-gateway/server.js\"",
+    "start": "concurrently \"node auth-service/server.js\" \"node catalog-service/server.js\" \"node reservation-service/server.js\" \"node api-gateway/server.js\"",
+    "seed": "node seed-all.js"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.5",
+    "express": "^4.21.1",
+    "http-proxy-middleware": "^3.0.3",
+    "jsonwebtoken": "^9.0.2",
+    "sqlite3": "^5.1.7"
+  },
+  "devDependencies": {
+    "concurrently": "^9.0.1",
+    "nodemon": "^3.1.7"
+  }
+}

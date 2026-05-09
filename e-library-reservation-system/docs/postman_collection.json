@@ -1,0 +1,96 @@
+{
+  "info": {
+    "name": "E-Library Reservation System",
+    "_postman_id": "e-library-collection-001",
+    "description": "Postman collection for the E-Library Reservation System APIs (via API Gateway).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:8080/api" },
+    { "key": "token", "value": "" }
+  ],
+  "item": [
+    {
+      "name": "Auth - Login",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/login",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"email\": \"admin@elibrary.com\",\n  \"password\": \"Admin@123\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Auth - Register",
+      "request": {
+        "method": "POST",
+        "header": [{ "key": "Content-Type", "value": "application/json" }],
+        "url": "{{baseUrl}}/auth/register",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"name\": \"New Student\",\n  \"email\": \"new@elibrary.com\",\n  \"password\": \"Pass@123\",\n  \"role\": \"student\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Books - List",
+      "request": { "method": "GET", "url": "{{baseUrl}}/books" }
+    },
+    {
+      "name": "Books - Search",
+      "request": { "method": "GET", "url": "{{baseUrl}}/books?search=clean&availableOnly=true" }
+    },
+    {
+      "name": "Books - Create (admin)",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/books",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"title\": \"Refactoring\",\n  \"author\": \"Martin Fowler\",\n  \"genre\": \"Programming\",\n  \"isbn\": \"9780134757599\",\n  \"totalCopies\": 3,\n  \"summary\": \"Improving the design of existing code.\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Reservations - Create",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/reservations",
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"bookId\": 1,\n  \"startDate\": \"2026-05-10\",\n  \"endDate\": \"2026-05-17\"\n}"
+        }
+      }
+    },
+    {
+      "name": "Reservations - List",
+      "request": {
+        "method": "GET",
+        "header": [{ "key": "Authorization", "value": "Bearer {{token}}" }],
+        "url": "{{baseUrl}}/reservations"
+      }
+    },
+    {
+      "name": "Reservations - Update Status",
+      "request": {
+        "method": "PATCH",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" },
+          { "key": "Authorization", "value": "Bearer {{token}}" }
+        ],
+        "url": "{{baseUrl}}/reservations/1/status",
+        "body": { "mode": "raw", "raw": "{\n  \"status\": \"approved\"\n}" }
+      }
+    }
+  ]
+}

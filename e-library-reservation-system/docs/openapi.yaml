@@ -1,0 +1,248 @@
+openapi: 3.0.3
+info:
+  title: E-Library Reservation System API
+  version: 1.0.0
+  description: |
+    REST API exposed via the API Gateway at http://localhost:8080.
+    Internal microservices: auth-service (4001), catalog-service (4002), reservation-service (4003).
+servers:
+  - url: http://localhost:8080/api
+    description: API Gateway (local)
+tags:
+  - name: Auth
+  - name: Books
+  - name: Reservations
+components:
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
+  schemas:
+    User:
+      type: object
+      properties:
+        id: { type: integer }
+        name: { type: string }
+        email: { type: string }
+        role: { type: string, enum: [student, staff, admin] }
+    AuthResponse:
+      type: object
+      properties:
+        user: { $ref: '#/components/schemas/User' }
+        token: { type: string }
+    Book:
+      type: object
+      properties:
+        id: { type: integer }
+        title: { type: string }
+        author: { type: string }
+        genre: { type: string }
+        isbn: { type: string }
+        totalCopies: { type: integer }
+        availableCopies: { type: integer }
+        summary: { type: string }
+    Reservation:
+      type: object
+      properties:
+        id: { type: integer }
+        book_id: { type: integer }
+        book_title: { type: string }
+        user_id: { type: integer }
+        user_name: { type: string }
+        user_role: { type: string }
+        start_date: { type: string, format: date }
+        end_date: { type: string, format: date }
+        status: { type: string, enum: [requested, approved, rejected, returned] }
+        created_at: { type: string }
+        updated_at: { type: string }
+    Error:
+      type: object
+      properties:
+        message: { type: string }
+paths:
+  /auth/register:
+    post:
+      tags: [Auth]
+      summary: Register a new user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [name, email, password, role]
+              properties:
+                name: { type: string }
+                email: { type: string }
+                password: { type: string }
+                role: { type: string, enum: [student, staff, admin] }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '409': { description: Email already registered }
+  /auth/login:
+    post:
+      tags: [Auth]
+      summary: Login and receive JWT
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [email, password]
+              properties:
+                email: { type: string }
+                password: { type: string }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/AuthResponse' }
+        '401': { description: Invalid credentials }
+  /auth/me:
+    get:
+      tags: [Auth]
+      summary: Get current user from token
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200': { description: OK }
+        '401': { description: Invalid token }
+  /books:
+    get:
+      tags: [Books]
+      summary: List books with optional search/filter
+      parameters:
+        - in: query
+          name: search
+          schema: { type: string }
+        - in: query
+          name: genre
+          schema: { type: string }
+        - in: query
+          name: availableOnly
+          schema: { type: string, enum: ['true', 'false'] }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Book' }
+    post:
+      tags: [Books]
+      summary: Create a book (admin only)
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Book' }
+      responses:
+        '201': { description: Created }
+        '403': { description: Admin only }
+  /books/{id}:
+    get:
+      tags: [Books]
+      summary: Get a book by id
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Book' }
+        '404': { description: Not found }
+    put:
+      tags: [Books]
+      summary: Update a book (admin only)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema: { $ref: '#/components/schemas/Book' }
+      responses:
+        '200': { description: OK }
+    delete:
+      tags: [Books]
+      summary: Delete a book (admin only)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      responses:
+        '200': { description: Deleted }
+  /reservations:
+    get:
+      tags: [Reservations]
+      summary: List reservations (own for students; all for staff/admin)
+      security: [{ bearerAuth: [] }]
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items: { $ref: '#/components/schemas/Reservation' }
+    post:
+      tags: [Reservations]
+      summary: Create a reservation request
+      security: [{ bearerAuth: [] }]
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [bookId, startDate, endDate]
+              properties:
+                bookId: { type: integer }
+                startDate: { type: string, format: date }
+                endDate: { type: string, format: date }
+      responses:
+        '201':
+          description: Created
+          content:
+            application/json:
+              schema: { $ref: '#/components/schemas/Reservation' }
+  /reservations/{id}/status:
+    patch:
+      tags: [Reservations]
+      summary: Update reservation status (staff/admin)
+      security: [{ bearerAuth: [] }]
+      parameters:
+        - in: path
+          name: id
+          required: true
+          schema: { type: integer }
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required: [status]
+              properties:
+                status: { type: string, enum: [approved, rejected, returned] }
+      responses:
+        '200': { description: OK }
+        '403': { description: Staff/Admin only }

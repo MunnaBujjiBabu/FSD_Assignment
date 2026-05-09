@@ -1,0 +1,9 @@
+node_modules/
+**/node_modules/
+**/dist/
+**/.env
+**/backend/data/*.db
+*.log
+.DS_Store
+.codesight/
+/package-lock.json
